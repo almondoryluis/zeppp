@@ -4,7 +4,7 @@
 
     <groupId>com.ezv.zeppp</groupId>
     <artifactId>zeppp-cli</artifactId>
-    <version>1.0.5</version>
+    <version>1.0.6</version> <!-- UPDATE ZEPPP_CLI_VERSION in ZEPPPConsole.java when updating this -->
     <packaging>jar</packaging>
 
     <name>Zero Extra Parts PIC Programmer CLI</name>

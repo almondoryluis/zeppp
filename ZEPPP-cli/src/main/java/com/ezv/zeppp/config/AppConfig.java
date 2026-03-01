@@ -41,6 +41,7 @@ public class AppConfig {
                         .withPgmWriteMode((byte)0)
                         .withMemEraseMode((byte)0)
                         .withPgmWriteSize((byte)1)
+                        .withConfWordsMask(new int[]{0b11110111111111})
         );
 
         addSupportedPIC (
@@ -56,6 +57,7 @@ public class AppConfig {
                         .withPgmWriteMode((byte)0)
                         .withMemEraseMode((byte)0)
                         .withPgmWriteSize((byte)1)
+                        .withConfWordsMask(new int[]{0b11110111111111})
         );
 
         addSupportedPIC (
@@ -71,6 +73,7 @@ public class AppConfig {
                         .withPgmWriteMode((byte)0)
                         .withMemEraseMode((byte)0)
                         .withPgmWriteSize((byte)1)
+                        .withConfWordsMask(new int[]{0b10000111111111})
         );
 
         addSupportedPIC (
@@ -86,6 +89,7 @@ public class AppConfig {
                         .withPgmWriteMode((byte)0)
                         .withMemEraseMode((byte)0)
                         .withPgmWriteSize((byte)1)
+                        .withConfWordsMask(new int[]{0b10000111111111})
         );
 
         addSupportedPIC (
@@ -101,6 +105,7 @@ public class AppConfig {
                         .withPgmWriteMode((byte)0)
                         .withMemEraseMode((byte)0)
                         .withPgmWriteSize((byte)1)
+                        .withConfWordsMask(new int[]{0b10000111111111})
         );
     }
 
@@ -118,6 +123,7 @@ public class AppConfig {
                         .withPgmWriteMode((byte)0)
                         .withMemEraseMode((byte)2)
                         .withPgmWriteSize((byte)1)
+                        .withConfWordsMask(new int[]{0b11101111111111})
         );
 
         addSupportedPIC (
@@ -133,6 +139,7 @@ public class AppConfig {
                         .withPgmWriteMode((byte)0)
                         .withMemEraseMode((byte)2)
                         .withPgmWriteSize((byte)1)
+                        .withConfWordsMask(new int[]{0b11101111111111})
         );
 
         addSupportedPIC (
@@ -148,6 +155,7 @@ public class AppConfig {
                         .withPgmWriteMode((byte)0)
                         .withMemEraseMode((byte)2)
                         .withPgmWriteSize((byte)1)
+                        .withConfWordsMask(new int[]{0b11101111111111})
         );
 
         addSupportedPIC (
@@ -163,6 +171,7 @@ public class AppConfig {
                         .withPgmWriteMode((byte)0)
                         .withMemEraseMode((byte)2)
                         .withPgmWriteSize((byte)1)
+                        .withConfWordsMask(new int[]{0b11101111111111})
         );
 
         addSupportedPIC (
@@ -178,6 +187,7 @@ public class AppConfig {
                         .withPgmWriteMode((byte)0)
                         .withMemEraseMode((byte)2)
                         .withPgmWriteSize((byte)1)
+                        .withConfWordsMask(new int[]{0b11101111111111})
         );
 
         addSupportedPIC (
@@ -193,6 +203,7 @@ public class AppConfig {
                         .withPgmWriteMode((byte)0)
                         .withMemEraseMode((byte)2)
                         .withPgmWriteSize((byte)1)
+                        .withConfWordsMask(new int[]{0b11101111111111})
         );
 
         addSupportedPIC (
@@ -208,6 +219,7 @@ public class AppConfig {
                         .withPgmWriteMode((byte)0)
                         .withMemEraseMode((byte)2)
                         .withPgmWriteSize((byte)1)
+                        .withConfWordsMask(new int[]{0b11101111111111})
         );
     }
 
@@ -225,6 +237,7 @@ public class AppConfig {
                         .withPgmWriteMode((byte)0)
                         .withMemEraseMode((byte)1)
                         .withPgmWriteSize((byte)8)
+                        .withConfWordsMask(new int[]{0b10111111001111})
         );
 
         addSupportedPIC (
@@ -240,6 +253,7 @@ public class AppConfig {
                         .withPgmWriteMode((byte)0)
                         .withMemEraseMode((byte)1)
                         .withPgmWriteSize((byte)8)
+                        .withConfWordsMask(new int[]{0b10111111001111})
         );
 
         addSupportedPIC (
@@ -255,6 +269,7 @@ public class AppConfig {
                         .withPgmWriteMode((byte)0)
                         .withMemEraseMode((byte)1)
                         .withPgmWriteSize((byte)8)
+                        .withConfWordsMask(new int[]{0b10111111001111})
         );
 
         addSupportedPIC (
@@ -270,6 +285,7 @@ public class AppConfig {
                         .withPgmWriteMode((byte)0)
                         .withMemEraseMode((byte)1)
                         .withPgmWriteSize((byte)8)
+                        .withConfWordsMask(new int[]{0b10111111001111})
         );
     }
 
@@ -287,6 +303,7 @@ public class AppConfig {
                         .withPgmWriteMode((byte)1)
                         .withMemEraseMode((byte)1)
                         .withPgmWriteSize((byte)4)
+                        .withConfWordsMask(new int[]{0b11111111111111, 0b00000000000011})
         );
 
         addSupportedPIC (
@@ -302,6 +319,7 @@ public class AppConfig {
                         .withPgmWriteMode((byte)1)
                         .withMemEraseMode((byte)1)
                         .withPgmWriteSize((byte)4)
+                        .withConfWordsMask(new int[]{0b11111111111111, 0b00000000000011})
         );
     }
 
@@ -322,6 +340,7 @@ public class AppConfig {
                         .withPgmWriteMode((byte)0)
                         .withMemEraseMode((byte)0)
                         .withPgmWriteSize((byte)1)
+                        .withConfWordsMask(new int[]{0b11111111111111, 0b00011100000000})
         );
         addSupportedPIC (
                 new PICDeviceConfigEntry("16f883")
@@ -336,6 +355,7 @@ public class AppConfig {
                         .withPgmWriteMode((byte)0)
                         .withMemEraseMode((byte)0)
                         .withPgmWriteSize((byte)1)
+                        .withConfWordsMask(new int[]{0b11111111111111, 0b00011100000000})
         );
         addSupportedPIC (
                 new PICDeviceConfigEntry("16f884")
@@ -350,6 +370,7 @@ public class AppConfig {
                         .withPgmWriteMode((byte)0)
                         .withMemEraseMode((byte)0)
                         .withPgmWriteSize((byte)1)
+                        .withConfWordsMask(new int[]{0b11111111111111, 0b00011100000000})
         );
         addSupportedPIC (
                 new PICDeviceConfigEntry("16f886")
@@ -364,6 +385,7 @@ public class AppConfig {
                         .withPgmWriteMode((byte)0)
                         .withMemEraseMode((byte)0)
                         .withPgmWriteSize((byte)1)
+                        .withConfWordsMask(new int[]{0b11111111111111, 0b00011100000000})
         );
         addSupportedPIC (
                 new PICDeviceConfigEntry("16f887")
@@ -378,6 +400,7 @@ public class AppConfig {
                         .withPgmWriteMode((byte)0)
                         .withMemEraseMode((byte)0)
                         .withPgmWriteSize((byte)1)
+                        .withConfWordsMask(new int[]{0b11111111111111, 0b00011100000000})
         );
     }
 

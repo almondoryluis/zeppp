@@ -21,7 +21,7 @@ import static com.ezv.zeppp.ZEPPPCLICommand.CLICommandCode.*;
 
 public class ZEPPPConsole {
     public static final String ZEPPP_CLI_APP_NAME = "zeppp-cli";
-    public static final String ZEPPP_CLI_VERSION = "1.0.5-SNAPSHOT";
+    public static final String ZEPPP_CLI_VERSION = "1.0.6"; // Keep this in sync with the version in POM.XML
 
     private static AppConfig programConfig = new AppConfig();
     private static ZEPPPClient zepppBridge = null;
@@ -336,7 +336,7 @@ public class ZEPPPConsole {
             case CLI_COMMAND_WAIT:
                 long ms = Long.parseLong(trimValue);
                 ZEPPPConsole.msg(String.format("Waiting %d ms ...", ms));
-                Thread.sleep (ms);
+                Utils.sleep (ms);
                 return false;
 
             case CLI_COMMAND_HELP:

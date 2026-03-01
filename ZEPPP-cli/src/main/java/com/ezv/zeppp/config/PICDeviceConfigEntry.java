@@ -1,5 +1,7 @@
 package com.ezv.zeppp.config;
 
+import com.ezv.zeppp.ZEPPPConsole;
+
 // ################################################################################################################
 // ## PICDeviceConfigEntry                                                                                       ##
 // ##                                                                                                            ##
@@ -22,6 +24,7 @@ public class PICDeviceConfigEntry {
     private byte pgmWriteMode = 0;
     private byte pgmWriteSize = 1;
     private byte memEraseMode = 0;
+    private int[] confWordsMask = null;
 
     public PICDeviceConfigEntry (String deviceName) {
         this.deviceName = deviceName;
@@ -73,6 +76,14 @@ public class PICDeviceConfigEntry {
 
     public String getDeviceName () {
         return deviceName;
+    }
+
+    public int[] getConfWordsMask() {
+        return confWordsMask;
+    }
+
+    public void setConfWordsMask(int[] confWordsMask) {
+        this.confWordsMask = confWordsMask;
     }
 
     public PICDeviceConfigEntry withPgmMemSize (int pgmMemSize) {
@@ -127,6 +138,14 @@ public class PICDeviceConfigEntry {
 
     public PICDeviceConfigEntry withPgmWriteSize (byte pgmWriteSize) {
         this.pgmWriteSize = pgmWriteSize;
+        return this;
+    }
+
+    public PICDeviceConfigEntry withConfWordsMask (int[] confWordsMask) {
+        if (confWordsMask.length != this.confWords){
+            ZEPPPConsole.critical("MISMATCH IN CONF WORD MASK SIZE VERSUS CONF WORD SIZE. FIX ZEPPP CONFIG!");
+        }
+        this.confWordsMask = confWordsMask;
         return this;
     }
 }
