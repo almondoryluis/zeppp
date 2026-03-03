@@ -44,4 +44,14 @@ public class HexFileParseUtils {
     public static String hexWordString (int w) {
         return String.format("%02X%02X", (w >> 8) & 0xff, (w & 0xff));
     }
+
+    public static String wordArrayToHexString(int [] words){
+        String out = "";
+        int tsize = words.length;
+
+        for (int i = 0; i < tsize; i++){
+            out += HexFileParseUtils.hexWordString(words[i]) + (i < tsize-1 ? " " : "");
+        }
+        return out;
+    }
 }

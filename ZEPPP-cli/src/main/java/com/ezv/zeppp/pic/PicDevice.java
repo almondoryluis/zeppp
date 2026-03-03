@@ -15,6 +15,7 @@ import com.ezv.zeppp.intelhex.HexBuffer;
 import java.util.Map;
 
 public class PicDevice {
+    public static final int PIC_WORD_MASK = 0x3FFF; // Words are 14 bits
     public static final int DEFAULT_MEM_CONTENT = 0x3FFF;
     public static final int DEFAULT_DATA_MEM_CONTENT = 0x00FF;
     public static final int USER_IDS_COUNT = 4;

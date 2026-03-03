@@ -77,7 +77,7 @@ public class ZEPPPClient {
 
     private PICDeviceConfigEntry getConnectedDevice (AppConfig loadedConfig) throws ZEPPPCommandException, IntelHexParsingException  {
         ZEPPPConsole.msg("Detecting connected device...");
-        selectConfigMemStart(PicDevice.DEVICE_ID_OFFSET);
+        resetLVPAndselectConfigMemStart(PicDevice.DEVICE_ID_OFFSET);
         ZEPPPResponse response = sendCommandWithByte(ZEPPP.ZEPPP_CMD_PGM_MEM_READ, (byte)1);
         throwExceptionOnFailure(response, "Read Device ID");
 
@@ -118,11 +118,44 @@ public class ZEPPPClient {
         }
         enterLVPMode();
     }
+    private boolean validateDataAndMask(int[] data, int [] mask){
+        if (data == null || mask == null) {
+            ZEPPPConsole.warning("Can't apply mask to config. Missing CONF word or mask!");
+            return false;
+        }
+        if (data.length != mask.length) {
+            ZEPPPConsole.warning("Mismatching mask length. Can't apply to config word!");
+            return false;
+        }
+        return true;
+    }
+    private void applyUnimplementedMask(int[] data, int[] mask){
+        if (!validateDataAndMask(data, mask)) return;
+
+        for (int i = 0; i < data.length; i++){
+            // "mask" will have 0s on unimplemented bits. Those bits will read "1" when read back, but we can
+            // leave them out when reading them and writing them.
+            data[i] = data[i] & mask[i];
+        }
+    }
+
+
+    // Unimplemented bits should read as "1". This function will check if we ever receive a "0" outside of the config mask
+    private void checkIfReceivedDataInsideMask(int[] data, int[] mask){
+        if (!validateDataAndMask(data, mask)) return;
+
+        for (int i = 0; i < data.length; i++){
+            // PIC words are only 14 bit long
+            int d = (~data[i]) & PicDevice.PIC_WORD_MASK;
+            if ((d & (~mask[i])) != 0) {
+                ZEPPPConsole.info("Found CONF data in the response outside of the expected mask! This could be a ZEPPP config issue!");
+            }
+        }
+    }
 
     public void verifyUserIDs (PicDevice picDevice) throws ZEPPPCommandException, IntelHexParsingException {
-        resetLVP();
         ZEPPPConsole.msg("Verifying User IDs...");
-        throwExceptionOnFailure(sendCommand(ZEPPP.ZEPPP_CMD_SELECT_CFG_MEM), "Select CFG Memory Area");
+        resetLVPAndselectConfigMemStart(0);
 
         ZEPPPResponse response = sendCommandWithByte(ZEPPP.ZEPPP_CMD_PGM_MEM_READ, (byte)PicDevice.USER_IDS_COUNT);
         throwExceptionOnFailure(response, "Read User IDs");
@@ -133,17 +166,28 @@ public class ZEPPPClient {
         ZEPPPConsole.msg("User ID Verification finished successfully.");
     }
 
-    public void verifyConfigWords (PicDevice picDevice) throws ZEPPPCommandException, IntelHexParsingException {
-        resetLVP();
-        ZEPPPConsole.msg("Verifying Config Words...");
 
-        selectConfigMemStart(PicDevice.CONF_WORD_OFFSET);
+
+    public void verifyConfigWords (PicDevice picDevice) throws ZEPPPCommandException, IntelHexParsingException {
+        ZEPPPConsole.msg("Verifying Config Words...");
+        resetLVPAndselectConfigMemStart(PicDevice.CONF_WORD_OFFSET);
         ZEPPPResponse response = sendCommandWithByte(ZEPPP.ZEPPP_CMD_PGM_MEM_READ, (byte)picDevice.getDeviceCfg().getConfWords());
         throwExceptionOnFailure(response, "Read Config Words");
 
         int []dataReceived = response.getMessageWordArray();
         if (dataReceived.length != picDevice.getDeviceCfg().getConfWords()) throw new ZEPPPCommandException("Data size mismatch", "Verify Configuration Memory");
-        verifyWordBuffer (picDevice.getConfWords(), 0, dataReceived);
+        int [] dataInMemory = picDevice.getConfWords().asWords();
+        int [] confWordMask = picDevice.getDeviceCfg().getConfWordsMask();
+        // This check will tell us if there's ever an inconsistency with the mask. It should never trigger unless
+        // I made a mistake and specified a wrong mask for a PIC device
+        checkIfReceivedDataInsideMask(dataReceived, confWordMask);
+        ZEPPPConsole.info("CONF words in Buffer: " + HexFileParseUtils.wordArrayToHexString(dataInMemory));
+        ZEPPPConsole.info("CONF words in Device: " + HexFileParseUtils.wordArrayToHexString(dataReceived));
+        applyUnimplementedMask(dataReceived, confWordMask);
+        applyUnimplementedMask(dataInMemory, confWordMask);
+        ZEPPPConsole.info("Masked CONF words in Buffer: " + HexFileParseUtils.wordArrayToHexString(dataInMemory));
+        ZEPPPConsole.info("Masked CONF words in Device: " + HexFileParseUtils.wordArrayToHexString(dataReceived));
+        verifyWordBuffer (new HexBuffer(dataInMemory), 0, dataReceived);
         ZEPPPConsole.msg("Config Word Verification finished successfully.");
     }
 
@@ -194,7 +238,7 @@ public class ZEPPPClient {
         HexBuffer confMem = picDevice.getConfWords();
 
         ZEPPPConsole.msg ("Reading Config Words...");
-        selectConfigMemStart(PicDevice.CONF_WORD_OFFSET);
+        resetLVPAndselectConfigMemStart(PicDevice.CONF_WORD_OFFSET);
 
         ZEPPPResponse readResponse = sendCommandWithByte(ZEPPP.ZEPPP_CMD_PGM_MEM_READ,(byte)picDevice.getDeviceCfg().getConfWords());
         throwExceptionOnFailure(readResponse, "Read Config Words");
@@ -207,7 +251,7 @@ public class ZEPPPClient {
         HexBuffer uidMem = picDevice.getUserIds();
 
         ZEPPPConsole.msg ("Reading User IDs...");
-        selectConfigMemStart(0);
+        resetLVPAndselectConfigMemStart(0);
         ZEPPPResponse readResponse = sendCommandWithByte(ZEPPP.ZEPPP_CMD_PGM_MEM_READ,(byte)PicDevice.USER_IDS_COUNT);
         throwExceptionOnFailure(readResponse, "Read User IDs");
         int [] words = readResponse.getMessageWordArray();
@@ -267,7 +311,7 @@ public class ZEPPPClient {
     }
 
     public void verifyWordBuffer (HexBuffer picDeviceBuffer, int startOffset, int [] dataReceived) throws ZEPPPCommandException {
-        for (int i = 0; i < dataReceived.length; i++) {
+       for (int i = 0; i < dataReceived.length; i++) {
             int expected = picDeviceBuffer.getWord(startOffset + i*2);
             if (dataReceived[i] != expected) {
                 throw new ZEPPPCommandException(
@@ -281,12 +325,6 @@ public class ZEPPPClient {
     public void saveWordBuffer (HexBuffer picDeviceBuffer, int startOffset, int [] dataReceived) {
         for (int i = 0; i < dataReceived.length; i++) {
             picDeviceBuffer.setWord(startOffset + i*2, (short)dataReceived[i]);
-        }
-    }
-
-    public void saveByteBuffer (HexBuffer picDeviceBuffer, int startOffset, int [] dataReceived) {
-        for (int i = 0; i < dataReceived.length; i++) {
-            picDeviceBuffer.setByte(startOffset + i, (byte)dataReceived[i]);
         }
     }
 
@@ -304,6 +342,7 @@ public class ZEPPPClient {
     }
 
     public void chipErase(PicDevice picDevice)  throws ZEPPPCommandException {
+        resetLVP();
         ZEPPPConsole.msg("Erasing CHIP Memory...");
         throwExceptionOnFailure(sendCommandWithByte(ZEPPP.ZEPPP_CMD_CHIP_ERASE, picDevice.getDeviceCfg().getChipErase()), "Erase CHIP");
     }
@@ -329,15 +368,6 @@ public class ZEPPPClient {
                 );
             }
         }
-    }
-
-    private int getMaxWrittenWords (HexBuffer pgmMem) {
-        int pgmMemSizeInWords = pgmMem.getBufferSize() / 2;
-
-        for (int i = pgmMemSizeInWords-1; i >= 0; i--) {
-            if (pgmMem.getWord(i*2) != PicDevice.DEFAULT_MEM_CONTENT) return i;
-        }
-        return 0;
     }
 
     public void writeDataMem (PicDevice picDevice) throws ZEPPPCommandException {
@@ -367,7 +397,7 @@ public class ZEPPPClient {
         byte writeMode = picDevice.getDeviceCfg().getPgmWriteMode();
 
         ZEPPPConsole.msg("Writing User IDs...");
-        selectConfigMemStart(0);
+        resetLVPAndselectConfigMemStart(0);
         sendPgmWriteCommand(writeSize, writeMode, picDevice.getUserIds(), 0, PicDevice.USER_IDS_COUNT);
     }
 
@@ -376,8 +406,7 @@ public class ZEPPPClient {
         byte writeMode = picDevice.getDeviceCfg().getPgmWriteMode();
 
         ZEPPPConsole.msg("Writing Config Words...");
-        selectConfigMemStart(PicDevice.CONF_WORD_OFFSET);
-
+        resetLVPAndselectConfigMemStart(PicDevice.CONF_WORD_OFFSET);
         sendPgmWriteCommand((byte)1, writeMode, picDevice.getConfWords(), 0, confWordsCount);
         if ((picDevice.getConfWords().getWord(0) & PicDevice.CONF_WORD_LVP_MASK) == 0) {
             ZEPPPConsole.info("Your code seems to disable Low-Voltage Programming. This won't be saved in PIC memory!");
@@ -385,7 +414,6 @@ public class ZEPPPClient {
     }
 
     public void writeAll (PicDevice picDevice) throws ZEPPPCommandException, IntelHexParsingException {
-        resetLVP();
         writeUserIDs(picDevice);
         writePgmMem(picDevice);
         writeDataMem(picDevice);
@@ -394,8 +422,16 @@ public class ZEPPPClient {
         writeConfigWords(picDevice);
     }
 
+    private int getMaxWrittenWords (HexBuffer pgmMem) {
+        int pgmMemSizeInWords = pgmMem.getBufferSize() / 2;
+
+        for (int i = pgmMemSizeInWords-1; i >= 0; i--) {
+            if (pgmMem.getWord(i*2) != PicDevice.DEFAULT_MEM_CONTENT) return i;
+        }
+        return 0;
+    }
+
     public void programAll(PicDevice picDevice) throws ZEPPPCommandException, IntelHexParsingException {
-        resetLVP();
         chipErase(picDevice);
         writeUserIDs(picDevice);
         verifyUserIDs(picDevice);
@@ -413,14 +449,13 @@ public class ZEPPPClient {
     }
 
     public void verifyAll(PicDevice picDevice) throws ZEPPPCommandException, IntelHexParsingException{
-        resetLVP();
         verifyUserIDs(picDevice);
         verifyConfigWords(picDevice);
         verifyPgmMem(picDevice);
         verifyDataMem(picDevice);
     }
 
-    public void selectConfigMemStart (int withOffSet) throws ZEPPPCommandException {
+    public void resetLVPAndselectConfigMemStart(int withOffSet) throws ZEPPPCommandException {
         resetLVP();
         throwExceptionOnFailure(sendCommand(ZEPPP.ZEPPP_CMD_SELECT_CFG_MEM), "Select CFG Memory Area");
         if (withOffSet > 0) {

@@ -28,6 +28,13 @@ public class HexBuffer {
         this.data = ByteBuffer.wrap(data);
     }
 
+    public HexBuffer (int[] data) {
+        this(data.length*2);
+        for (int i=0; i<data.length; i++){
+            this.setWord(i*2, (short)data[i]);
+        }
+    }
+
     public static HexBuffer fromString (String hexString) throws IntelHexParsingException {
         int recordLen = (hexString.length()) / 2;
         HexBuffer ret = new HexBuffer(recordLen);
@@ -61,7 +68,28 @@ public class HexBuffer {
     }
 
     public byte[] getBytes (int offset, int len) {
-        return Arrays.copyOfRange(this.data.array(), offset, offset + len);
+        byte[] out = new byte[len];
+
+        for (int x = 0; x < len; x++){
+            out[x] = offset + x < this.data.capacity() ? this.data.get(offset + x) : 0;
+        }
+        return out;
+    }
+
+    public int[] getWords(int offsetInWords, int lenInWords) {
+        int byteOffset = offsetInWords*2;
+        int byteLen = lenInWords*2;
+        byte b[] = getBytes(byteOffset, byteLen);
+        int[] out = new int[lenInWords];
+
+        for (int n = 0; n < lenInWords; n++){
+            out[n] = (b[n*2] & 0xff) | (b[n*2 + 1]<<8);
+        }
+        return out;
+    }
+
+    public int[] asWords() {
+        return getWords(0, this.getBufferSize()/2);
     }
 
     public int getBufferSize () {
